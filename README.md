@@ -1,5 +1,7 @@
 # OAuth Test Page - Public Testing Resource
 
+[live version here!](https://dreamy-faloodeh-e791f3.netlify.app/)
+
 A free, public webpage designed specifically for testing OAuth button detection and automation with tools like Selenium, Playwright, Puppeteer, and Cypress.
 
 RE: The manual test button, I commented it out. I'm not sure if the interaction it provided was realistic enough to serve any purpose. If you want to deploy this you will need a google client id for an app from your developer account.
