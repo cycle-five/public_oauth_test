@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Test Page - Free Testing Resource</title>
+    <meta name="description" content="Free public page for testing Google OAuth automation with Selenium, Playwright, Puppeteer, and other tools.">
+    <meta name="keywords" content="oauth, google signin, test, automation, selenium, playwright, puppeteer">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin: 30px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .google-btn {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .google-btn:hover {
+            background-color: #357ae8;
+        }
+
+        .google-btn:active {
+            transform: translateY(1px);
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.info {
+            background-color: #e7f3ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+
+        .user-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .user-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .user-info p {
+            color: #555;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+
+        .user-info strong {
+            color: #333;
+        }
+
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-box h3 {
+            color: #856404;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .info-box p, .info-box ul {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .info-box li {
+            margin: 5px 0;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            color: #666;
+            font-size: 12px;
+        }
+
+        .footer a {
+            color: #4285f4;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .selectors-box {
+            background: #e8f4f8;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .selectors-box h4 {
+            color: #004085;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .selectors-box code {
+            display: block;
+            margin: 5px 0;
+            background: white;
+            padding: 8px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 OAuth Test Page</h1>
+        <p class="subtitle">Free public resource for testing OAuth automation</p>
+
+        <div id="status-waiting" class="status info">
+            <strong>Status:</strong> Waiting for sign-in
+        </div>
+
+        <div id="status-success" class="status success">
+            <strong>✓ Success!</strong> OAuth flow completed
+        </div>
+
+        <div class="button-container">
+            <!-- Google's Official Sign-In Button (renders when configured) -->
+            <!-- Client ID will be set dynamically by JavaScript -->
+            <div id="g_id_onload"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+
+            <div id="g_id_signin_container" class="g_id_signin"
+                 data-type="standard"
+                 data-shape="rectangular"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
+
+            <!-- Fallback Manual Button (always visible)
+            <button class="google-btn" id="google-signin-btn" onclick="handleManualSignInClick()">
+                <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                Sign in with Google (Manual Test)
+            </button> -->
+
+            <div class="selectors-box">
+                <h4>📋 Common Selectors (WIP):</h4>
+                <code>.g_id_signin</code>
+                <code>#google-signin-btn</code>
+                <code>.google-btn</code>
+                <code>button:has-text("Sign in with Google")</code>
+                <code>div[data-test="Login with Google"]</code>
+                <code>iframe[src*="accounts.google.com"]</code>
+            </div>
+        </div>
+
+        <div id="user-info" class="user-info">
+            <h3>Successfully Authenticated!</h3>
+            <p><strong>Name:</strong> <span id="user-name"></span></p>
+            <p><strong>Email:</strong> <span id="user-email"></span></p>
+            <p><strong>Login time:</strong> <span id="click-time"></span></p>
+            <p><strong>Auth type:</strong> <span id="event-type"></span></p>
+        </div>
+
+        <div id="test-mode-info" class="user-info" style="display: none; background: #fff3cd;">
+            <h3>Test Mode Activated!</h3>
+            <p><strong>Button clicked at:</strong> <span id="test-click-time"></span></p>
+            <p><strong>Event type:</strong> Manual test button</p>
+            <p><strong>Tests passed:</strong> ✓ Button detection, ✓ Click event, ✓ Automation success</p>
+        </div>
+
+        <div class="info-box">
+            <h3>🤖 For Automation Testing</h3>
+            <p>This page is designed to test OAuth button detection and clicking in automation frameworks like:</p>
+            <ul>
+                <li><strong>Selenium</strong> (Python, Java, JavaScript, C#)</li>
+                <li><strong>Playwright</strong> (Python, JavaScript, TypeScript)</li>
+                <li><strong>Puppeteer</strong> (JavaScript, TypeScript)</li>
+                <li><strong>Cypress</strong> (JavaScript)</li>
+                <li><strong>Any other web automation tool</strong></li>
+            </ul>
+        </div>
+
+        <div class="footer">
+            <p>Free to use • No setup required • Tracking</p>
+            <p style="margin-top: 8px;">Made for the testing community</p>
+        </div>
+    </div>
+
+    <!-- Load config first, before Google API -->
+    <script src="config.js" onerror="console.log('config.js not found - using test mode')"></script>
+
+    <script>
+        let clickCount = 0;
+        let clientIdConfigured = false;
+
+        // Set client ID immediately if available
+        if (typeof GOOGLE_CLIENT_ID !== 'undefined' && GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_CLIENT_ID_HERE') {
+            clientIdConfigured = true;
+            // Dynamically set the client ID before Google API loads
+            window.GOOGLE_OAUTH_CLIENT_ID = GOOGLE_CLIENT_ID;
+        }
+    </script>
+
+    <!-- Load Google API after config -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <script>
+        // Check if config.js loaded and has a valid client ID
+        function checkConfiguration() {
+            if (typeof GOOGLE_CLIENT_ID !== 'undefined' && GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_CLIENT_ID_HERE') {
+                clientIdConfigured = true;
+                // Set the client ID on the g_id_onload element
+                const gIdElement = document.getElementById('g_id_onload');
+                if (gIdElement) {
+                    gIdElement.setAttribute('data-client_id', GOOGLE_CLIENT_ID);
+                }
+                console.log('✓ Google OAuth configured with Client ID');
+                return true;
+            }
+            console.log('ℹ Google OAuth not configured - using test mode');
+            return false;
+        }
+
+        // Handle real Google OAuth response
+        function handleCredentialResponse(response) {
+            console.log('Real Google OAuth sign-in successful!');
+            console.log('JWT ID Token received');
+
+            // Decode JWT to extract user info
+            const payload = parseJwt(response.credential);
+            console.log('User info:', payload);
+
+            // Update UI with real user data
+            document.getElementById('status-waiting').style.display = 'none';
+            document.getElementById('status-success').style.display = 'block';
+            document.getElementById('user-info').style.display = 'block';
+
+            document.getElementById('user-name').textContent = payload.name || 'N/A';
+            document.getElementById('user-email').textContent = payload.email || 'N/A';
+            document.getElementById('click-time').textContent = new Date().toLocaleTimeString();
+            document.getElementById('event-type').textContent = 'Real Google OAuth';
+
+            // Dispatch event
+            window.dispatchEvent(new CustomEvent('oauth-authenticated', {
+                detail: {
+                    type: 'real',
+                    email: payload.email,
+                    name: payload.name,
+                    timestamp: new Date().toISOString()
+                }
+            }));
+        }
+
+        // Parse JWT token (client-side only, don't use for verification!)
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Failed to parse JWT:', e);
+                return {};
+            }
+        }
+
+        // Handle manual test button click
+        function handleManualSignInClick() {
+            clickCount++;
+
+            console.log('Manual test button clicked!');
+            console.log('Click count:', clickCount);
+            console.log('Timestamp:', new Date().toISOString());
+
+            // Update UI
+            document.getElementById('status-waiting').style.display = 'none';
+            document.getElementById('status-success').style.display = 'block';
+            document.getElementById('test-mode-info').style.display = 'block';
+
+            const now = new Date();
+            document.getElementById('test-click-time').textContent = now.toLocaleTimeString();
+
+            // Provide visual feedback
+            const button = document.getElementById('google-signin-btn');
+            const originalText = button.innerHTML;
+            button.innerHTML = '✓ Clicked!';
+            button.style.backgroundColor = '#34a853';
+
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.backgroundColor = '#4285f4';
+            }, 2000);
+
+            // Dispatch custom event
+            window.dispatchEvent(new CustomEvent('oauth-test-clicked', {
+                detail: {
+                    type: 'test',
+                    timestamp: now.toISOString(),
+                    clickCount: clickCount
+                }
+            }));
+        }
+
+        // Initialize Google Sign-In button programmatically
+        function initializeGoogleButton() {
+            if (typeof google !== 'undefined' && google.accounts) {
+                console.log('✓ Google API loaded');
+
+                // Initialize with code instead of HTML attributes
+                if (clientIdConfigured) {
+                    google.accounts.id.initialize({
+                        client_id: GOOGLE_CLIENT_ID,
+                        callback: handleCredentialResponse,
+                        auto_select: false,
+                        cancel_on_tap_outside: true
+                    });
+
+                    // Render the button
+                    google.accounts.id.renderButton(
+                        document.getElementById("g_id_signin_container"),
+                        {
+                            type: "standard",
+                            shape: "rectangular",
+                            theme: "outline",
+                            text: "signin_with",
+                            size: "large",
+                            logo_alignment: "left"
+                        }
+                    );
+
+                    console.log('✓ Google Sign-In button rendered');
+                } else {
+                    console.log('ℹ Client ID not configured - Google button won\'t work');
+                    // Hide the Google button container since it won't work
+                    document.getElementById('g_id_onload').style.display = 'none';
+                    document.getElementById('g_id_signin_container').style.display = 'none';
+                }
+            } else {
+                console.log('⚠ Google API not loaded yet, retrying...');
+                setTimeout(initializeGoogleButton, 500);
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', function() {
+            console.log('OAuth Test Page loaded successfully');
+            console.log('');
+
+            checkConfiguration();
+
+            if (clientIdConfigured) {
+                console.log('Mode: REAL Google OAuth');
+                console.log('The Google button will trigger actual authentication');
+                console.log('Client ID:', GOOGLE_CLIENT_ID);
+
+                // Initialize the Google button
+                initializeGoogleButton();
+            } else {
+                console.log('Mode: TEST mode (no Client ID configured)');
+                console.log('Use the manual test button for automation testing');
+            }
+
+            console.log('');
+            console.log('Available selectors:');
+            console.log('  - button:has-text("Google")');
+            console.log('  - button:has-text("Sign in with Google")');
+            console.log('  - #google-signin-btn');
+            console.log('  - .google-btn');
+            console.log('  - .g_id_signin (Google official button)');
+            console.log('');
+            console.log('Custom events:');
+            console.log('  - oauth-authenticated (real OAuth)');
+            console.log('  - oauth-test-clicked (test mode)');
+        });
+
+        // Event listeners for custom events
+        window.addEventListener('oauth-authenticated', function(e) {
+            console.log('Real OAuth authentication event:', e.detail);
+        });
+
+        window.addEventListener('oauth-test-clicked', function(e) {
+            console.log('Test click event:', e.detail);
+        });
+    </script>
+</body>
+</html>

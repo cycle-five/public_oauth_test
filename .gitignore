@@ -1,0 +1,13 @@
+# Ignore the actual config file (contains Client ID)
+config.js
+
+# Keep the example
+!config.example.js
+
+# SSL certificates for local development
+localhost.pem
+localhost-key.pem
+localhost-combined.pem
+
+# Local Netlify folder
+.netlify
