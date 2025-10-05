@@ -1,6 +1,6 @@
 # OAuth Test Page - Public Testing Resource
 
-[live version here!](https://dreamy-faloodeh-e791f3.netlify.app/)
+[live version here!](https://public-oauth-test.netlify.app/)
 
 A free, public webpage designed specifically for testing OAuth button detection and automation with tools like Selenium, Playwright, Puppeteer, and Cypress.
 
@@ -18,7 +18,7 @@ This page provides a **simple, reliable target** for testing automation framewor
    - Actual Google authentication screens
    - Perfect for end-to-end testing
 
-2. **Test Mode** (no setup required)
+2. **Test Mode** (no setup required, not supported WIP)
    - Manual test button for automation logic
    - No Google configuration needed
    - Perfect for button detection testing
@@ -33,18 +33,7 @@ Perfect for:
 
 ## 🚀 Quick Start
 
-### Option 1: Test Mode (No Setup)
-
-```bash
-# Serve the page locally
-python -m http.server 8000
-```
-
-Visit: `https://localhost:8000`
-
-The page works immediately with a manual test button!
-
-### Option 2: Real OAuth Mode (5-minute setup)
+### No Deploy Setup (5-minutes)
 
 1. **Get a Google OAuth Client ID**:
    - See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed step-by-step instructions
@@ -191,7 +180,7 @@ describe('OAuth Button Test', () => {
 
 ## 🎨 Available Selectors
 
-The page is designed with multiple selector strategies (ymmv):
+The page is designed with multiple selector strategies (ymmv using this):
 
 - `button:has-text("Google")` - Text-based
 - `button:has-text("Sign in with Google")` - Full text
