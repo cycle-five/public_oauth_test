@@ -297,6 +297,8 @@
     <script>
         let clickCount = 0;
         let clientIdConfigured = false;
+        let googleApiRetryCount = 0;
+        const MAX_GOOGLE_API_RETRIES = 20;
 
         // Set client ID immediately if available
         if (typeof GOOGLE_CLIENT_ID !== 'undefined' && GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_CLIENT_ID_HERE') {
@@ -442,9 +444,13 @@
                     document.getElementById('g_id_onload').style.display = 'none';
                     document.getElementById('g_id_signin_container').style.display = 'none';
                 }
-            } else {
-                console.log('⚠ Google API not loaded yet, retrying...');
+            } else if (googleApiRetryCount < MAX_GOOGLE_API_RETRIES) {
+                googleApiRetryCount++;
+                console.log(`⚠ Google API not loaded yet, retrying (${googleApiRetryCount}/${MAX_GOOGLE_API_RETRIES})...`);
                 setTimeout(initializeGoogleButton, 500);
+            } else {
+                console.error('❌ Failed to load Google API after maximum retries');
+                console.error('Please check your internet connection and refresh the page');
             }
         }
 

@@ -26,7 +26,8 @@ google_button_selectors = [
 
 def is_iframe(loc: Locator) -> bool:
     """Check if the URL is an iframe URL."""
-    return loc.get_attribute("src").startswith("https://accounts.google.com")
+    src = loc.get_attribute("src")
+    return src is not None and src.startswith("https://accounts.google.com")
 
 
 def find_google_buttons_in_iframe(page: Page) -> list[Locator]:
@@ -99,7 +100,7 @@ def handle_security_key(page: Page):
             try:
                 if page.locator(selector).is_visible(timeout=2000):
                     on_security_key_page = True
-                    log.info(format("Detected security key prompt: %s", selector))
+                    log.info(f"Detected security key prompt: {selector}")
                     break
             except Exception as _:
                 continue
@@ -148,11 +149,11 @@ def handle_security_key(page: Page):
             log.info("✓ Security key authentication completed successfully!")
 
         except Exception as e:
-            log.error(format("Error waiting for security key: %s", str(e)))
+            log.error(f"Error waiting for security key: {str(e)}")
             # Continue anyway, user might have completed it
 
     except Exception as e:
-        log.error(format("Error in security key handling: %s", str(e)))
+        log.error(f"Error in security key handling: {str(e)}")
         import traceback
 
         traceback.print_exc()
@@ -240,7 +241,7 @@ def handle_2fa_auth_key(page: Page):
             log.info("✓ Authentication completed successfully!")
 
         except Exception as e:
-            log.error(format("Error waiting for 2FA submission: %s", e))
+            log.error(f"Error waiting for 2FA submission: {e}")
             # Continue anyway, user might have completed it
 
     except Exception as e:
@@ -445,7 +446,7 @@ def google_oauth_login_action(
                 break
 
             except Exception as e:
-                log.error(format("Failed to complete login flow: %s", e))
+                log.error(f"Failed to complete login flow: {e}")
                 continue
 
         # Wait a bit to ensure login is complete
