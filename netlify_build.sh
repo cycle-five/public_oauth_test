@@ -15,12 +15,22 @@ if [ ! -f "config.example.js" ]; then
 fi
 
 # Generate config.js from template
-cat config.example.js | sed 's/YOUR_CLIENT_ID_HERE/'"$GOOGLE_CLIENT_ID"'/g' > config.js
+sed 's/YOUR_CLIENT_ID_HERE/'"$GOOGLE_CLIENT_ID"'/g' config.example.js > config.js
 
-# Verify config.js was created successfully
-if [ -f "config.js" ]; then
-    echo "✓ config.js generated successfully"
-else
+# Verify config.js was created successfully and substitution occurred
+if [ ! -f "config.js" ]; then
     echo "Error: Failed to generate config.js"
     exit 1
 fi
+
+# Check that GOOGLE_CLIENT_ID was substituted and placeholder is gone
+if ! grep -q "$GOOGLE_CLIENT_ID" config.js; then
+    echo "Error: GOOGLE_CLIENT_ID was not substituted correctly in config.js"
+    exit 1
+fi
+if grep -q "YOUR_CLIENT_ID_HERE" config.js; then
+    echo "Error: Placeholder YOUR_CLIENT_ID_HERE still present in config.js"
+    exit 1
+fi
+
+echo "✓ config.js generated successfully"
