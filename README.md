@@ -1,5 +1,8 @@
 # OAuth Test Page - Public Testing Resource
 
+[![OAuth Testing](https://github.com/cycle-five/public_oauth_test/actions/workflows/test.yml/badge.svg)](https://github.com/cycle-five/public_oauth_test/actions/workflows/test.yml)
+[![Nightly Tests](https://github.com/cycle-five/public_oauth_test/actions/workflows/nightly.yml/badge.svg)](https://github.com/cycle-five/public_oauth_test/actions/workflows/nightly.yml)
+
 [live version here!](https://public-oauth-test.netlify.app/)
 
 A free, public webpage designed specifically for testing OAuth button detection and automation with tools like Selenium, Playwright, Puppeteer, and Cypress.
@@ -30,6 +33,40 @@ Perfect for:
 - CI/CD pipeline testing
 - Educational purposes
 - Real OAuth flow testing
+
+## 🧪 Automated Testing
+
+This project includes a comprehensive automated testing framework with CI/CD integration:
+
+**Features:**
+- ✅ Pytest-based test suite with headless mode support
+- ✅ Automated GitHub Actions workflows (runs on every PR)
+- ✅ Unit tests, integration tests, and full OAuth flow tests
+- ✅ Support for 2FA and hardware security keys
+- ✅ Code coverage reporting
+- ✅ Multiple test execution modes (headless/headed)
+
+**Quick Start Testing:**
+```bash
+# Install dependencies
+pip install -r requirements.txt
+playwright install chromium
+
+# Configure credentials
+cp .env.example .env
+# Edit .env with your Google test credentials
+
+# Run tests
+./run_tests.sh unit       # Fast unit tests
+./run_tests.sh headless   # Headless browser tests
+./run_tests.sh headed     # Visible browser tests
+```
+
+**Documentation:**
+- [QUICKSTART_TESTING.md](QUICKSTART_TESTING.md) - 5-minute testing guide
+- [TESTING.md](TESTING.md) - Comprehensive testing documentation
+- [.github/workflows/README.md](.github/workflows/README.md) - CI/CD setup guide
+- [.github/CONTRIBUTING.md](.github/CONTRIBUTING.md) - Contribution guidelines
 
 ## 🚀 Quick Start
 
