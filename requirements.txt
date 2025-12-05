@@ -1,0 +1,29 @@
+# Requirements for test_google_oauth.py
+# This script demonstrates Google OAuth automation testing
+
+# Core automation framework
+playwright>=1.40.0
+
+# Web scraping library (used in the test script)
+# Note: scrapling may have additional dependencies
+# Install with: pip install scrapling
+scrapling>=0.2.0
+
+# Note: The script also imports 'scrapling_pick' which is not a standard package.
+# This appears to be a custom module for credential management.
+# You may need to:
+# 1. Create your own credential management system, OR
+# 2. Replace the get_credentials import with your own implementation, OR
+# 3. Store credentials in environment variables
+#
+# Example alternative implementation:
+# ```python
+# import os
+# GOOGLE_EMAIL = os.getenv('GOOGLE_EMAIL')
+# GOOGLE_PASSWORD = os.getenv('GOOGLE_PASSWORD')
+# ```
+
+# For development and testing
+pytest>=7.0.0  # If you want to add proper tests
+pytest-playwright>=0.4.0  # Playwright pytest integration
+python-dotenv>=1.0.0  # For loading .env files with credentials
