@@ -6,6 +6,8 @@ A free, public webpage designed specifically for testing OAuth button detection 
 
 **⚠️ Note:** This page uses **real Google OAuth only**. You will need a Google Client ID from your Google Cloud developer account (free to create - see [SETUP_GUIDE.md](SETUP_GUIDE.md)).
 
+**📖 Quick Navigation:** See [QUICKREF.md](QUICKREF.md) for fast access to all documentation.
+
 ## 🎯 Purpose
 
 This page provides a **simple, reliable target** for testing automation frameworks with **real Google OAuth**.
