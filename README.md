@@ -23,6 +23,24 @@ This page provides a **simple, reliable target** for testing automation framewor
    - No Google configuration needed
    - Perfect for button detection testing
 
+### Plain login form
+
+[`login.html`](https://public-oauth-test.netlify.app/login.html) is a regular
+username and password form, for testing form filling, password managers and
+credential brokers without Google in the way.
+
+- Public test credentials: `testuser` / `correct-horse-battery-staple`.
+  Anything else is refused (`Unknown username`, `Wrong password`).
+- Selectors: `#username`, `#password`, `#submit`, `#login-form`.
+  `#login-status[data-state]` is `idle`, `success` or `error`.
+- `#fill-report` shows how many characters are in each field
+  (`data-username-length`, `data-password-length`) and never the values, so a
+  test can confirm that a fill landed without reading a secret back out.
+- Nothing typed there leaves the browser. The page has no backend and makes no
+  network requests, and its Content-Security-Policy forbids them
+  (`default-src 'none'`, `form-action 'none'`). It needs no Client ID and no
+  build step.
+
 Perfect for:
 - Learning web automation
 - Testing button detection logic
