@@ -1,6 +1,6 @@
 # OAuth Test Page - Public Testing Resource
 
-[live version here!](https://public-oauth-test.netlify.app/)
+[live version here!](https://login.page.twkr.io/)
 
 A free, public webpage designed specifically for testing OAuth button detection and automation with tools like Selenium, Playwright, Puppeteer, and Cypress.
 
@@ -25,7 +25,7 @@ This page provides a **simple, reliable target** for testing automation framewor
 
 ### Plain login form
 
-[`login.html`](https://public-oauth-test.netlify.app/login.html) is a regular
+[`login.html`](https://login.page.twkr.io/login.html) is a regular
 username and password form, for testing form filling, password managers and
 credential brokers without Google in the way.
 
