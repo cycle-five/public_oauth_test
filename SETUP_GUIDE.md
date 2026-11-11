@@ -23,11 +23,11 @@ Testing with real Google OAuth gives you:
 5. Click "**CREATE**"
 6. Wait for the project to be created (~30 seconds)
 
-### Step 2: Enable Required APIs
+### Step 2: Enable Google+ APIs (optional but recommended)
 
 1. Make sure your new project is selected (check the dropdown at top)
 2. In the left sidebar, click "**APIs & Services**" → "**Library**"
-3. Search for "**Google+ API**" (optional but recommended)
+3. Search for "**Google+ API**"
 4. Click it and press "**ENABLE**"
 
 > **Note**: For basic OAuth, this step is optional, but it's good practice.
@@ -37,22 +37,23 @@ Testing with real Google OAuth gives you:
 This is the screen users see when logging in.
 
 1. In the left sidebar, click "**APIs & Services**" → "**OAuth consent screen**"
-2. Choose user type:
-   - **Internal**: Only for Google Workspace users (if you have a workspace)
-   - **External**: For any Google account (recommended for testing) ✅
-3. Click "**CREATE**"
+2. It should have a "Get Started" button if Auth hasn't been enabled for this project yet (which is won't if this is fresh).
+3. Click "Get Started" and you should be at a "Project configuration" screen, with  "Google Auth Platform" / "Overview" / "Create branding" at the top left under the project name.
 
-4. Fill in the **App information**:
+4.  Fill in the **App information**:
    - **App name**: `OAuth Test Page` (or any name)
    - **User support email**: Your email
-   - **App logo**: (optional, skip for now)
 
-5. Fill in **Developer contact information**:
+5. Click "Next"
+6. Select "Audience"
+   - **External**
+7. Click "Next"
+8. Fill in **Developer contact information**:
    - **Email addresses**: Your email
 
-6. Click "**SAVE AND CONTINUE**"
+9. Click "**SAVE AND CONTINUE**"
 
-7. **Scopes** page:
+10. **Scopes** page:
    - Click "**ADD OR REMOVE SCOPES**"
    - Find and check these scopes:
      - `openid`
@@ -61,13 +62,13 @@ This is the screen users see when logging in.
    - Click "**UPDATE**"
    - Click "**SAVE AND CONTINUE**"
 
-8. **Test users** page (for External apps):
+11. **Test users** page (for External apps):
    - Click "**+ ADD USERS**"
    - Enter the Gmail address you'll use for testing
    - Click "**ADD**"
    - Click "**SAVE AND CONTINUE**"
 
-9. **Summary** page:
+11. **Summary** page:
    - Review everything
    - Click "**BACK TO DASHBOARD**"
 
@@ -287,3 +288,8 @@ Example (fake):
 **Questions?** Open an issue or check the Google Identity documentation linked above.
 
 **Working?** You now have a fully functional OAuth test page! 🎉
+
+** N.B. **
+Anyone can test this way, it seems to be a loophole explicitly made by google for testing purposes, per the docs [here](https://support.google.com/cloud/answer/15549945?authuser=4#publishing-status-testing&zippy=%2Ctesting)
+
+> The only exception to this behavior is if your app requests a subset of the following: name, email address, and user profile (through the userinfo.email, userinfo.profile, openid scopes or their OpenID Connect equivalents). For such requests, your users do not need to be in the trusted user list, they will not see a warning message, and their authorizations will not expire after 7 days. If your app uses Sign in with Google to authenticate users then this exception also applies. If your app requests any other OAuth scopes, then this exception does not apply.
