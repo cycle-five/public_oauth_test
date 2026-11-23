@@ -5,7 +5,7 @@ test.describe('login/about.html', () => {
     const res = await page.goto(serverURL + '/login/about.html');
     expect(res.status()).toBe(200);
     const rows = page.locator('table#variants tr');
-    for (const url of ['/login.html', '/login/any.html', '/login/spa.html']) {
+    for (const url of ['/login.html', '/login/any.html', '/login/spa.html', '/login/spa-keep.html']) {
       await expect(rows.filter({ hasText: url }).first()).toBeVisible();
     }
   });
@@ -13,7 +13,7 @@ test.describe('login/about.html', () => {
   test('names selectors and public credentials', async ({ page, serverURL }) => {
     await page.goto(serverURL + '/login/about.html');
     const text = await page.locator('body').innerText();
-    for (const s of ['#login-form', '#username', '#password', '#fill-report']) {
+    for (const s of ['#login-form', '#username', '#password', '#fill-report', '#submit-report']) {
       expect(text).toContain(s);
     }
     expect(text).toContain('testuser');

@@ -40,15 +40,27 @@ Variants:
   (the page a canary test uses).
 - `/login/spa.html`: script login via `fetch()`, accept-any. The form is
   removed and `history.pushState` is used, with no navigation.
+- `/login/spa-keep.html`: the same script login, but success takes nothing
+  away. The form stays in the DOM, still filled, and the URL does not change
+  (for testing what a filler does afterwards, such as clearing the fields).
 - `/login/welcome.html`: landing page after success (no credential fields).
 
 - Public test credentials: `testuser` / `correct-horse-battery-staple`.
 - Selectors: `#login-form`, `#username`, `#password`, `#submit`.
   `#login-status[data-state]` is `idle`, `error` or `not_ready` on the login
-  pages, and `success` on the welcome page.
+  pages, and `success` on the welcome page and on `spa-keep.html` after a
+  login.
 - `#fill-report` shows how many characters are in each field
   (`data-username-length`, `data-password-length`) and never the values, so a
   test can confirm that a fill landed without reading a secret back out.
+- `#submit-report` is the receipt of the last successful submit: the lengths
+  that were in the fields at that moment (same two attributes, plus
+  `data-recorded="true"`). It stays put after the form is gone, on the welcome
+  page and in both script pages, so a fill and submit that finish faster than
+  a test can poll are still observable.
+- Add `?expect=<sha256 hex of "username:password">` to a login page and the
+  receipt also carries `data-match="true|false"`, compared in the page. Use it
+  with a long random canary only, since the digest is in the URL.
 
 Perfect for:
 - Learning web automation

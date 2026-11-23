@@ -234,6 +234,7 @@
         <div id="login-status" class="status" data-state="success" role="status" aria-live="polite">
             <strong>Status:</strong> <span id="login-status-text">Logged in</span>
         </div>
+        <p id="submit-report" class="line" data-recorded="false">No submit receipt in this tab.</p>
         <p class="line"><a id="logout" href="/login.html">Log out</a></p>
     </main>
     <script>
@@ -244,6 +245,32 @@
             var from = new URLSearchParams(location.search).get('from');
             var href = (from !== null && Object.prototype.hasOwnProperty.call(TARGETS, from)) ? TARGETS[from] : '/login.html';
             document.getElementById('logout').setAttribute('href', href);
+
+            function renderReceipt(el, r) {
+                el.dataset.recorded = 'true';
+                el.dataset.usernameLength = String(r.u);
+                el.dataset.passwordLength = String(r.p);
+                var text = 'Submitted ' + r.u + ' / ' + r.p + ' characters (username / password).';
+                if (typeof r.m === 'boolean') {
+                    el.dataset.match = String(r.m);
+                    text += r.m ? ' Matches the expected digest.' : ' Does not match the expected digest.';
+                } else {
+                    delete el.dataset.match;
+                }
+                el.textContent = text;
+            }
+
+            // Written by the login page at submit: lengths and an optional yes/no,
+            // never the values. Anything that is not exactly that shape is ignored.
+            function count(v) { return typeof v === 'number' && Number.isInteger(v) && v >= 0; }
+            try {
+                var r = JSON.parse(sessionStorage.getItem('login-test:last-submit'));
+                if (r && count(r.u) && count(r.p)) {
+                    renderReceipt(document.getElementById('submit-report'), {
+                        u: r.u, p: r.p, m: typeof r.m === 'boolean' ? r.m : undefined
+                    });
+                }
+            } catch (e) { /* no receipt */ }
         })();
     </script>
 </body>
