@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Nothing typed here leaves the machine: a service worker answers the form post. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; worker-src 'self'; form-action 'self'; base-uri 'none'">
+    <meta name="referrer" content="no-referrer">
+    <title>Login Test Page - Accept Any</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+
+        h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        .status[data-state="idle"] {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status[data-state="success"] {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status[data-state="error"] {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        form {
+            margin: 30px 0 20px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            margin-bottom: 18px;
+            font: inherit;
+            font-size: 16px;
+            color: #333;
+            background: white;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+        }
+
+        input:focus-visible,
+        button:focus-visible,
+        a:focus-visible {
+            outline: 3px solid #667eea;
+            outline-offset: 2px;
+        }
+
+        button {
+            padding: 10px 24px;
+            font: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background: #5a67d8;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #4c56b8;
+        }
+
+        button.secondary {
+            color: #333;
+            background: #e2e6ea;
+        }
+
+        button.secondary:hover {
+            background: #d3d9df;
+        }
+
+        .panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .panel p + p {
+            margin-top: 8px;
+        }
+
+        .panel.note {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+        }
+
+        .panel table {
+            border-collapse: collapse;
+            margin-top: 4px;
+        }
+
+        .panel th {
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            padding: 3px 16px 3px 0;
+        }
+
+        .panel td {
+            padding: 3px 0;
+            font-variant-numeric: tabular-nums;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 13px;
+            background: #eef0f3;
+            padding: 1px 5px;
+            border-radius: 4px;
+            overflow-wrap: anywhere;
+        }
+
+        .panel ul {
+            margin: 8px 0 0 20px;
+        }
+
+        .panel li {
+            margin: 4px 0;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+
+        .footer a,
+        .subtitle a {
+            color: #5a67d8;
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 24px; }
+            form { padding: 20px; }
+        }
+    
+        fieldset {
+            border: 0;
+            min-width: 0;
+        }
+
+        .line {
+            font-size: 14px;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .status[data-state="not_ready"] {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1>🔑 Login Test Page</h1>
+        <p class="subtitle">A plain username and password form for testing form filling and automation</p>
+
+        <div id="login-status" class="status" data-state="not_ready" role="status" aria-live="polite">
+            <strong>Status:</strong> <span id="login-status-text">Starting…</span>
+        </div>
+
+        <form id="login-form" method="post" action="/login/session/any" novalidate>
+            <fieldset disabled>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username"
+                       autocapitalize="none" autocorrect="off" spellcheck="false">
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password">
+
+                <button type="submit" id="submit">Log in</button>
+            </fieldset>
+        </form>
+
+        <p id="fill-report" class="line" data-username-length="0" data-password-length="0">
+            Fields hold <span id="username-length">0</span> / <span id="password-length">0</span> characters (username / password).
+        </p>
+
+        <p class="line">Any non-empty username and password is accepted.</p>
+
+        <div class="footer">
+            <p><a href="about.html">How this works</a> • <a href="/login.html">Strict login</a></p>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            'use strict';
+
+            var ERRORS = {
+                missing: 'Enter a username and a password',
+                unknown_username: 'Unknown username',
+                wrong_password: 'Wrong password'
+            };
+
+            var form = document.getElementById('login-form');
+            var fieldset = form.querySelector('fieldset');
+            var username = document.getElementById('username');
+            var password = document.getElementById('password');
+            var status = document.getElementById('login-status');
+            var statusText = document.getElementById('login-status-text');
+            var report = document.getElementById('fill-report');
+            var usernameLength = document.getElementById('username-length');
+            var passwordLength = document.getElementById('password-length');
+
+            function setStatus(state, text) {
+                status.dataset.state = state;
+                statusText.textContent = text;
+            }
+
+            // Lengths only, never the values.
+            function updateReport() {
+                var u = String(username.value.length);
+                var p = String(password.value.length);
+                if (report.dataset.usernameLength !== u) {
+                    report.dataset.usernameLength = u;
+                    usernameLength.textContent = u;
+                }
+                if (report.dataset.passwordLength !== p) {
+                    report.dataset.passwordLength = p;
+                    passwordLength.textContent = p;
+                }
+            }
+
+            username.addEventListener('input', updateReport);
+            password.addEventListener('input', updateReport);
+            username.addEventListener('change', updateReport);
+            password.addEventListener('change', updateReport);
+            // Some fillers set .value directly and fire no event, so poll too.
+            setInterval(updateReport, 250);
+
+            // Only a fixed word from the map is ever shown, never the raw query.
+            var word = new URLSearchParams(location.search).get('error');
+            var known = word !== null && Object.prototype.hasOwnProperty.call(ERRORS, word);
+
+            function enable() {
+                fieldset.disabled = false;
+                form.setAttribute('data-ready', 'true');
+                if (known) setStatus('error', ERRORS[word]);
+                else setStatus('idle', 'Ready');
+            }
+
+            form.addEventListener('submit', function (event) {
+                if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+                    event.preventDefault();
+                    setStatus('not_ready', 'Reload this page normally');
+                }
+            });
+
+            if (!('serviceWorker' in navigator)) {
+                setStatus('not_ready', 'Service workers unavailable — reload this page normally');
+            } else {
+                setStatus('not_ready', 'Starting…');
+                navigator.serviceWorker.register('/sw.js', { scope: '/login' }).then(function () {
+                    if (navigator.serviceWorker.controller) {
+                        enable();
+                        return;
+                    }
+                    var done = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', function () {
+                        if (!done && navigator.serviceWorker.controller) {
+                            done = true;
+                            enable();
+                        }
+                    });
+                    setTimeout(function () {
+                        if (!done && !navigator.serviceWorker.controller) {
+                            setStatus('not_ready', 'Reload this page normally');
+                        }
+                    }, 3000);
+                }, function () {
+                    setStatus('not_ready', 'Could not start — reload this page normally');
+                });
+            }
+
+            updateReport();
+        })();
+    </script>
+</body>
+</html>

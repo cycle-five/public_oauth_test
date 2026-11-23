@@ -3,12 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Nothing typed here can leave the page: no network, no form post, no external code. -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+    <!-- Nothing typed here leaves the machine: a service worker answers the form post. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; worker-src 'self'; form-action 'self'; base-uri 'none'">
     <meta name="referrer" content="no-referrer">
-    <title>Login Test Page - Free Testing Resource</title>
-    <meta name="description" content="Free public username and password login form for testing form filling and automation with Selenium, Playwright, Puppeteer, password managers and other tools.">
-    <meta name="keywords" content="login, username, password, form, test, automation, selenium, playwright, puppeteer, password manager">
+    <title>Login Test Page - Strict</title>
     <style>
         * {
             margin: 0;
@@ -212,6 +210,23 @@
             .container { padding: 24px; }
             form { padding: 20px; }
         }
+    
+        fieldset {
+            border: 0;
+            min-width: 0;
+        }
+
+        .line {
+            font-size: 14px;
+            color: #555;
+            margin: 10px 0;
+        }
+
+        .status[data-state="not_ready"] {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
     </style>
 </head>
 <body>
@@ -219,65 +234,31 @@
         <h1>🔑 Login Test Page</h1>
         <p class="subtitle">A plain username and password form for testing form filling and automation</p>
 
-        <div id="login-status" class="status" data-state="idle" role="status" aria-live="polite">
-            <strong>Status:</strong> <span id="login-status-text">Waiting for sign-in</span>
+        <div id="login-status" class="status" data-state="not_ready" role="status" aria-live="polite">
+            <strong>Status:</strong> <span id="login-status-text">Starting…</span>
         </div>
 
-        <form id="login-form" method="post" action="#" novalidate>
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" autocomplete="username"
-                   autocapitalize="none" autocorrect="off" spellcheck="false" required>
+        <form id="login-form" method="post" action="/login/session/strict" novalidate>
+            <fieldset disabled>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" autocomplete="username"
+                       autocapitalize="none" autocorrect="off" spellcheck="false">
 
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" autocomplete="current-password" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" autocomplete="current-password">
 
-            <button type="submit" id="submit">Log in</button>
+                <button type="submit" id="submit">Log in</button>
+            </fieldset>
         </form>
 
-        <div id="logged-in" class="panel" hidden>
-            <h3>✅ Logged in</h3>
-            <p><strong>Username:</strong> <span id="logged-in-username"></span></p>
-            <p><strong>Login time:</strong> <span id="logged-in-time"></span></p>
-            <p style="margin-top: 14px;"><button type="button" id="logout" class="secondary">Log out</button></p>
-        </div>
+        <p id="fill-report" class="line" data-username-length="0" data-password-length="0">
+            Fields hold <span id="username-length">0</span> / <span id="password-length">0</span> characters (username / password).
+        </p>
 
-        <div id="fill-report" class="panel" data-username-length="0" data-password-length="0">
-            <h3>📏 What is in the fields</h3>
-            <table>
-                <tr><th scope="row">Username</th><td><span id="username-length">0</span> characters</td></tr>
-                <tr><th scope="row">Password</th><td><span id="password-length">0</span> characters</td></tr>
-            </table>
-            <p>Lengths only, never the values. Use this to check that a fill landed in the right
-               fields without reading a secret back out of the page.</p>
-        </div>
-
-        <div class="panel note">
-            <h3>🧪 Test credentials</h3>
-            <p>These are public and exist only for this page:</p>
-            <table>
-                <tr><th scope="row">Username</th><td><code id="test-username">testuser</code></td></tr>
-                <tr><th scope="row">Password</th><td><code id="test-password">correct-horse-battery-staple</code></td></tr>
-            </table>
-            <p>Anything else is refused: an unknown username gets
-               <code>Unknown username</code>, a wrong password gets <code>Wrong password</code>.</p>
-        </div>
-
-        <div class="panel">
-            <h3>🤖 For automation</h3>
-            <ul>
-                <li>Fields: <code>#username</code>, <code>#password</code>, button <code>#submit</code>, form <code>#login-form</code>.</li>
-                <li>Result: <code>#login-status</code> carries <code>data-state</code> =
-                    <code>idle</code>, <code>success</code> or <code>error</code>.</li>
-                <li>Fill check: <code>#fill-report</code> carries <code>data-username-length</code> and
-                    <code>data-password-length</code>.</li>
-                <li>Nothing you type is sent, stored or logged. The page makes no network requests and
-                    the check happens in your browser.</li>
-            </ul>
-        </div>
+        <p class="line">Test login: <code>testuser</code> / <code>correct-horse-battery-staple</code></p>
 
         <div class="footer">
-            <p>Free to use • No setup required • No tracking on this page</p>
-            <p style="margin-top: 8px;"><a href="index.html">Google sign-in test page</a></p>
+            <p><a href="/login/about.html">How this works</a> • <a href="/login/any.html">Accept-any login</a></p>
         </div>
     </main>
 
@@ -285,16 +266,18 @@
         (function () {
             'use strict';
 
-            // Public test credentials. Not a secret: they are printed on the page.
-            var TEST_USERNAME = 'testuser';
-            var TEST_PASSWORD = 'correct-horse-battery-staple';
+            var ERRORS = {
+                missing: 'Enter a username and a password',
+                unknown_username: 'Unknown username',
+                wrong_password: 'Wrong password'
+            };
 
             var form = document.getElementById('login-form');
+            var fieldset = form.querySelector('fieldset');
             var username = document.getElementById('username');
             var password = document.getElementById('password');
             var status = document.getElementById('login-status');
             var statusText = document.getElementById('login-status-text');
-            var loggedIn = document.getElementById('logged-in');
             var report = document.getElementById('fill-report');
             var usernameLength = document.getElementById('username-length');
             var passwordLength = document.getElementById('password-length');
@@ -304,8 +287,7 @@
                 statusText.textContent = text;
             }
 
-            // Lengths only. The values themselves are never written into the
-            // page, the console or storage.
+            // Lengths only, never the values.
             function updateReport() {
                 var u = String(username.value.length);
                 var p = String(password.value.length);
@@ -326,40 +308,49 @@
             // Some fillers set .value directly and fire no event, so poll too.
             setInterval(updateReport, 250);
 
+            // Only a fixed word from the map is ever shown, never the raw query.
+            var word = new URLSearchParams(location.search).get('error');
+            var known = word !== null && Object.prototype.hasOwnProperty.call(ERRORS, word);
+
+            function enable() {
+                fieldset.disabled = false;
+                form.setAttribute('data-ready', 'true');
+                if (known) setStatus('error', ERRORS[word]);
+                else setStatus('idle', 'Ready');
+            }
+
             form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                updateReport();
-
-                if (username.value === '' || password.value === '') {
-                    setStatus('error', 'Enter a username and a password');
-                    return;
+                if (!navigator.serviceWorker || !navigator.serviceWorker.controller) {
+                    event.preventDefault();
+                    setStatus('not_ready', 'Reload this page normally');
                 }
-                if (username.value !== TEST_USERNAME) {
-                    setStatus('error', 'Unknown username');
-                    return;
-                }
-                if (password.value !== TEST_PASSWORD) {
-                    setStatus('error', 'Wrong password');
-                    return;
-                }
-
-                document.getElementById('logged-in-username').textContent = username.value;
-                document.getElementById('logged-in-time').textContent = new Date().toLocaleString();
-                password.value = '';
-                updateReport();
-                form.hidden = true;
-                loggedIn.hidden = false;
-                setStatus('success', 'Logged in');
             });
 
-            document.getElementById('logout').addEventListener('click', function () {
-                form.reset();
-                updateReport();
-                loggedIn.hidden = true;
-                form.hidden = false;
-                setStatus('idle', 'Waiting for sign-in');
-                username.focus();
-            });
+            if (!('serviceWorker' in navigator)) {
+                setStatus('not_ready', 'Service workers unavailable — reload this page normally');
+            } else {
+                setStatus('not_ready', 'Starting…');
+                navigator.serviceWorker.register('/sw.js', { scope: '/login' }).then(function () {
+                    if (navigator.serviceWorker.controller) {
+                        enable();
+                        return;
+                    }
+                    var done = false;
+                    navigator.serviceWorker.addEventListener('controllerchange', function () {
+                        if (!done && navigator.serviceWorker.controller) {
+                            done = true;
+                            enable();
+                        }
+                    });
+                    setTimeout(function () {
+                        if (!done && !navigator.serviceWorker.controller) {
+                            setStatus('not_ready', 'Reload this page normally');
+                        }
+                    }, 3000);
+                }, function () {
+                    setStatus('not_ready', 'Could not start — reload this page normally');
+                });
+            }
 
             updateReport();
         })();
