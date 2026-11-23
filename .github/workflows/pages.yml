@@ -24,17 +24,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Stage publishable files
+        run: |
+          mkdir _site
+          rsync -a \
+            --exclude '/.git' \
+            --exclude '/tests' \
+            --exclude '/docs' \
+            --exclude '/_site' \
+            --exclude 'node_modules' \
+            ./ _site/
+
       - name: Write config.js
         env:
           GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
           GOOGLE_APP_ID: ${{ vars.GOOGLE_APP_ID }}
-          OUT: config.js
+          OUT: _site/config.js
         run: bash scripts/write-config.sh
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _site
 
       - name: Deploy to GitHub Pages
         id: deployment
