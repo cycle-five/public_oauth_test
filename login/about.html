@@ -246,7 +246,7 @@
     <main class="container">
         <h1>About the Login Test Pages</h1>
         <p class="subtitle">What these pages are for, what they promise, and how to check it. Try them:
-            <a href="/login.html">strict</a> · <a href="/login/any.html">accept-any</a> · <a href="/login/spa.html">script login</a></p>
+            <a href="/login.html">strict</a> · <a href="/login/any.html">accept-any</a> · <a href="/login/spa.html">script login</a> · <a href="/login/spa-keep.html">script login, form kept</a></p>
 
         <h2 id="purpose">Purpose</h2>
         <div class="panel">
@@ -261,7 +261,8 @@
                 <tr><td><a href="/login.html"><code>/login.html</code></a></td><td>Strict login: only the public pair <code>testuser</code> / <code>correct-horse-battery-staple</code> succeeds. Real form POST.</td></tr>
                 <tr><td><a href="/login/any.html"><code>/login/any.html</code></a></td><td>Accept-any: any non-empty username and password succeeds. Real form POST. (A canary test uses this, since a canary can never be the public password.)</td></tr>
                 <tr><td><a href="/login/spa.html"><code>/login/spa.html</code></a></td><td>Script login (accept-any): a <code>fetch()</code> POST, then the form is removed from the DOM and the URL changes via <code>history.pushState</code> (no document navigation).</td></tr>
-                <tr><td><code>/login/welcome.html</code></td><td>Landing page after success: no username or password field, says "Logged in", with a Log out link back to where the login came from.</td></tr>
+                <tr><td><a href="/login/spa-keep.html"><code>/login/spa-keep.html</code></a></td><td>Script login, form kept (accept-any): the same <code>fetch()</code> POST, but on success <em>nothing is taken away</em>. The form stays in the DOM with its values still in the fields, the URL does not change, and the status becomes <code>success</code>. For testing what a filler does with a filled form once the login has gone through, such as clearing the fields.</td></tr>
+                <tr><td><code>/login/welcome.html</code></td><td>Landing page after success: no username or password field, says "Logged in", shows the submit receipt, with a Log out link back to where the login came from.</td></tr>
             </table>
         </div>
 
@@ -270,16 +271,26 @@
             <ul>
                 <li><code>#login-form</code>: the form. Gains <code>data-ready="true"</code> once the worker controls the page.</li>
                 <li><code>#username</code>, <code>#password</code>, <code>#submit</code>: the fields and the button.</li>
-                <li><code>#login-status</code>: status box; its <code>data-state</code> is <code>idle</code>, <code>error</code> or <code>not_ready</code> on the login pages, and <code>success</code> on the welcome page.</li>
+                <li><code>#login-status</code>: status box; its <code>data-state</code> is <code>idle</code>, <code>error</code> or <code>not_ready</code> on the login pages, and <code>success</code> on the welcome page and on <code>/login/spa-keep.html</code> after a login (where the form also gains <code>data-logged-in="true"</code>).</li>
                 <li><code>#login-status-text</code>: the human-readable text inside the status box.</li>
-                <li><code>#fill-report</code>: carries <code>data-username-length</code> and <code>data-password-length</code>, the character counts currently in the fields (lengths only, never values).</li>
+                <li><code>#fill-report</code>: carries <code>data-username-length</code> and <code>data-password-length</code>, the character counts currently in the fields (lengths only, never values). It is live: on <code>/login/spa-keep.html</code> it drops to 0 / 0 when the fields are cleared after a login.</li>
+                <li><code>#submit-report</code>: the <em>submit receipt</em>, the character counts that were in the fields at the moment of the last successful submit, as <code>data-username-length</code> and <code>data-password-length</code>, with <code>data-recorded="true"</code>. It does not change afterwards, so it can be read at leisure. It is on the welcome page, in the logged-in panel of <code>/login/spa.html</code>, and under the form of <code>/login/spa-keep.html</code>. Where no submit was seen it says <code>data-recorded="false"</code> and has no lengths (a script calling <code>form.submit()</code> fires no submit event, so it leaves no receipt).</li>
             </ul>
+        </div>
+
+        <h2 id="receipt">Checking a fill without reading it back</h2>
+        <div class="panel">
+            <p>A fill and a submit can both finish between two looks at the page, and then the fields are gone. The submit receipt is the page's own reading, taken inside the submit: lengths always, and equality on request.</p>
+            <p>For equality, open any login page with <code>?expect=</code> followed by the SHA-256 (64 lowercase hex characters) of <code>username:password</code> in UTF-8. The receipt then carries <code>data-match="true"</code> or <code>"false"</code>. The comparison happens in the page; the digest is never shown, and a value that is not 64 hex characters is ignored.</p>
+            <p><code>printf '%s:%s' "$username" "$password" | sha256sum</code></p>
+            <p>The digest travels in the URL, so it does reach the web server and the browser history. Use it only for a long random canary, never for a password someone could guess.</p>
         </div>
 
         <h2 id="privacy">How values stay on the machine</h2>
         <div class="panel note">
             <p>The service worker (<code>/sw.js</code>, registered with <code>scope: '/login'</code>) intercepts three endpoints and answers them itself: <code>POST /login/session/strict</code>, <code>POST /login/session/any</code> and <code>POST /login/api/session</code>. The classic pages get a 303 redirect; the script page gets JSON <code>{"ok": ...}</code>. The request never reaches the network.</p>
             <p>The worker reads the body, compares, answers and forgets: no logging, no Cache Storage, no IndexedDB, no stored variable, and nothing from the request is echoed into a URL (the <code>error</code> and <code>from</code> words are fixed). There is deliberately no session state: the welcome page does not show the username, because a synthetic worker response cannot set a cookie.</p>
+            <p>The one thing a classic login page keeps is the submit receipt: two character counts, and a yes/no when <code>?expect=</code> was given, in this tab's <code>sessionStorage</code> under <code>login-test:last-submit</code>, so the welcome page can show it. No value is in it, and a login page removes it when it loads. The script pages keep the receipt in the page and store nothing.</p>
         </div>
 
         <h2 id="fail-closed">Fail-closed rules</h2>
@@ -294,7 +305,7 @@
 
         <h2 id="csp">Content-Security-Policy</h2>
         <div class="panel">
-            <p>Each page sets <code>default-src 'none'</code> with <code>form-action 'self'</code>, <code>worker-src 'self'</code>, <code>base-uri 'none'</code> and inline style and script. <code>/login/spa.html</code> additionally needs <code>connect-src 'self'</code> for its <code>fetch</code>. These were the only directives the design needed.</p>
+            <p>Each page sets <code>default-src 'none'</code> with <code>form-action 'self'</code>, <code>worker-src 'self'</code>, <code>base-uri 'none'</code> and inline style and script. <code>/login/spa.html</code> and <code>/login/spa-keep.html</code> additionally need <code>connect-src 'self'</code> for their <code>fetch</code>. These were the only directives the design needed.</p>
         </div>
 
         <h2 id="credentials">Public test credentials</h2>
@@ -340,7 +351,7 @@
         </div>
 
         <div class="footer">
-            <a href="/login.html">Strict login</a> · <a href="/login/any.html">Accept-any login</a> · <a href="/login/spa.html">Script login</a>
+            <a href="/login.html">Strict login</a> · <a href="/login/any.html">Accept-any login</a> · <a href="/login/spa.html">Script login</a> · <a href="/login/spa-keep.html">Script login, form kept</a>
         </div>
     </main>
 </body>
