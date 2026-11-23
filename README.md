@@ -25,21 +25,30 @@ This page provides a **simple, reliable target** for testing automation framewor
 
 ### Plain login form
 
-[`login.html`](https://login.page.twkr.io/login.html) is a regular
-username and password form, for testing form filling, password managers and
-credential brokers without Google in the way.
+The login test pages are real, submitted username and password forms, for
+testing form filling, password managers and credential brokers without Google
+in the way. A `<form>` POST is answered by a **service worker running in the
+browser**, which decides the outcome and redirects. The request never reaches
+the network, so nothing typed leaves the browser, but it is a genuine submitted
+login, so the browser's password-save and form-history path is exercised. See
+[`login/about.html`](https://login.page.twkr.io/login/about.html) for how it
+works.
+
+Variants:
+- `/login.html`: strict. Only the public pair succeeds.
+- `/login/any.html`: accept-any. Any non-empty username and password succeed
+  (the page a canary test uses).
+- `/login/spa.html`: script login via `fetch()`, accept-any. The form is
+  removed and `history.pushState` is used, with no navigation.
+- `/login/welcome.html`: landing page after success (no credential fields).
 
 - Public test credentials: `testuser` / `correct-horse-battery-staple`.
-  Anything else is refused (`Unknown username`, `Wrong password`).
-- Selectors: `#username`, `#password`, `#submit`, `#login-form`.
-  `#login-status[data-state]` is `idle`, `success` or `error`.
+- Selectors: `#login-form`, `#username`, `#password`, `#submit`.
+  `#login-status[data-state]` is `idle`, `error` or `not_ready` on the login
+  pages, and `success` on the welcome page.
 - `#fill-report` shows how many characters are in each field
   (`data-username-length`, `data-password-length`) and never the values, so a
   test can confirm that a fill landed without reading a secret back out.
-- Nothing typed there leaves the browser. The page has no backend and makes no
-  network requests, and its Content-Security-Policy forbids them
-  (`default-src 'none'`, `form-action 'none'`). It needs no Client ID and no
-  build step.
 
 Perfect for:
 - Learning web automation
