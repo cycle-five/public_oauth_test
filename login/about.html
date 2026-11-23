@@ -251,10 +251,10 @@
         <h2 id="purpose">Purpose</h2>
         <div class="panel">
             <p>These pages exist to test credential fillers, password managers and credential brokers, and in particular to find out what a browser stores after a <em>submitted</em> login. Typing into a form is one thing; a real submission is what makes browsers offer to save, and write rows to their login stores.</p>
-            <p><strong>Nothing typed here leaves your machine.</strong> A service worker answers the form posts itself, so the request never reaches the network or GitHub Pages.</p>
+            <p><strong>Nothing typed into the login pages leaves your machine.</strong> A service worker answers the form posts itself, so the request never reaches the network or GitHub Pages.</p>
         </div>
 
-        <h2 id="variants">The variants</h2>
+        <h2 id="variants-heading">The variants</h2>
         <div class="panel">
             <table id="variants" class="grid">
                 <tr><th>URL</th><th>What it is</th></tr>
@@ -305,16 +305,38 @@
 
         <h2 id="observed-storage">Observed storage results</h2>
         <div class="panel">
-            <p><strong>Pending.</strong> The storage-control results (which browser stores show a row after a submitted login) are recorded here during verification and will be filled in before merge.</p>
+            <p>Measured with Google Chrome 158 on Linux, a fresh profile per run, the browser closed before the files were read. <strong>Row counts and table names only — never the stored values.</strong> Three stores are checked: <code>Login&nbsp;Data</code> &rarr; <code>logins</code> (a credential actually saved), <code>Login&nbsp;Data</code> &rarr; <code>stats</code> (a save was <em>offered</em> and dismissed), and <code>Web&nbsp;Data</code> &rarr; <code>autofill</code> (the username recorded as form history).</p>
             <table class="grid">
-                <tr><th>Run</th><th>Policy</th><th>Store/table</th><th>Rows</th><th>Notes</th></tr>
-                <tr><td>(pending)</td><td></td><td></td><td></td><td></td></tr>
+                <tr><th>Run</th><th>Page / mode / policy</th><th><code>logins</code></th><th><code>stats</code></th><th><code>autofill</code></th></tr>
+                <tr><td>A</td><td>accept-any, typed, no policy</td><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>B</td><td>accept-any, values set by script, no policy</td><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>A&nbsp;headless</td><td>accept-any, typed, no policy, headless</td><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>C</td><td>old pre-fix page (<code>preventDefault</code>), typed, no policy</td><td>0</td><td>0</td><td>1</td></tr>
+                <tr><td>D</td><td>strict, typed <em>wrong</em> password (login fails), no policy</td><td>0</td><td>1</td><td>1</td></tr>
+                <tr><td>Protected</td><td>accept-any, typed, password manager + autofill disabled</td><td>0</td><td>0</td><td>0</td></tr>
             </table>
+            <p style="margin-top:12px">What this shows:</p>
+            <ul>
+                <li><strong>The fix works.</strong> A submitted login on the new pages makes Chrome <em>offer</em> to save (<code>stats</code>&nbsp;=&nbsp;1) and record form history (<code>autofill</code>&nbsp;=&nbsp;1). The old page (run&nbsp;C) left <code>stats</code>&nbsp;=&nbsp;0 because its <code>preventDefault()</code> meant the browser never saw a submission — that was the defect.</li>
+                <li><code>logins</code> stays 0 everywhere: an unattended browser never clicks "Save", so no credential is actually written. The save was offered, not accepted.</li>
+                <li><strong>Script-set values behave exactly like typed ones</strong> (run&nbsp;B = run&nbsp;A): a value written by a filler (native setter + synthetic <code>input</code>/<code>change</code>) is treated the same as keystrokes.</li>
+                <li><strong>Headless Chrome runs the save logic too</strong> (A&nbsp;headless = A): the bubble can't be shown, but the <code>stats</code> and <code>autofill</code> rows still appear.</li>
+                <li><strong>A failed login was <em>not</em> trace-free</strong> (run&nbsp;D): a wrong password still left <code>stats</code>&nbsp;=&nbsp;1 and <code>autofill</code>&nbsp;=&nbsp;1. The likely cause is that the redirect back to the login page briefly presents a <em>disabled</em> password field (the fail-closed state), which Chrome can read as "the login form is gone" and so offers to save anyway. Treat this as observed behaviour, not a guarantee.</li>
+                <li><strong>A locked-down browser stored nothing</strong> (Protected): all three counts were 0. <em>Caveat:</em> this run disabled the password manager and autofill through a per-profile <em>preference</em> (<code>credentials_enable_service=false</code>), which emulates an enterprise <em>managed policy</em> (<code>PasswordManagerEnabled=false</code>, <code>AutofillAddressEnabled=false</code>, <code>AutofillCreditCardEnabled=false</code>) without installing a system-wide policy. A real managed policy lives in <code>/etc/opt/chrome/policies/managed/</code>.</li>
+            </ul>
         </div>
 
         <h2 id="run-control">How to run a control</h2>
         <div class="panel">
-            <p>Use the reproducible harness <code>tests/storage-control.mjs</code>. Run it with a fresh <code>--user-data-dir</code>, a chosen login URL, typed versus script-set values, and optionally a managed policy. It reports table names and row counts only, never values.</p>
+            <p>Use the reproducible harness <code>tests/storage-control.mjs</code>. It serves the repo, launches a real Chrome with a fresh <code>--user-data-dir</code>, performs the login, then reports table names and row counts only — never values. Flags:</p>
+            <ul>
+                <li><code>--url</code> the login page to drive (default <code>/login/any.html</code>)</li>
+                <li><code>--mode typed|script</code> real keystrokes, or a value set by script with synthetic events</li>
+                <li><code>--policy none|protected</code> baseline, or password manager + autofill disabled</li>
+                <li><code>--headed|--headless</code> and <code>--channel chrome|chromium</code></li>
+            </ul>
+            <p>For example, run&nbsp;A above was
+                <code>node tests/storage-control.mjs --url /login/any.html --mode typed --policy none --headed --channel chrome</code>.</p>
         </div>
 
         <div class="footer">
