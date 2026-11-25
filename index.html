@@ -208,7 +208,7 @@
     <div class="container">
         <h1>🔐 OAuth Test Page</h1>
         <p class="subtitle">Free public resource for testing OAuth automation</p>
-        <p class="subtitle" style="margin-top: -20px;">Need a plain username and password form? <a href="login.html" id="login-page-link">Login test page</a></p>
+        <p class="subtitle" style="margin-top: -20px;">Need a plain username and password form? <a href="https://login.page.twkr.io/login.html" id="login-page-link">Login test pages</a></p>
 
         <div id="status-waiting" class="status info">
             <strong>Status:</strong> Waiting for sign-in
@@ -250,12 +250,11 @@
 
             <div class="selectors-box">
                 <h4>📋 Common Selectors (WIP):</h4>
+                <code>#g_id_signin_container</code>
                 <code>.g_id_signin</code>
-                <code>#google-signin-btn</code>
-                <code>.google-btn</code>
-                <code>button:has-text("Sign in with Google")</code>
-                <code>div[data-test="Login with Google"]</code>
+                <code>#g_id_onload</code>
                 <code>iframe[src*="accounts.google.com"]</code>
+                <code>button:has-text("Sign in with Google")</code> (inside that iframe)
             </div>
         </div>
 

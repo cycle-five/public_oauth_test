@@ -1,305 +1,64 @@
-# OAuth Test Page - Public Testing Resource
-
-[live version here!](https://login.page.twkr.io/)
-
-A free, public webpage designed specifically for testing OAuth button detection and automation with tools like Selenium, Playwright, Puppeteer, and Cypress.
-
-RE: The manual test button, I commented it out. I'm not sure if the interaction it provided was realistic enough to serve any purpose. If you want to deploy this you will need a google client id for an app from your developer account.
-
-## 🎯 Purpose
-
-This page provides a **simple, reliable target** for testing automation frameworks with **real Google OAuth** or test mode.
-
-### Two Modes:
-
-1. **Real OAuth Mode** ✅
-   - Authentic Google sign-in flow
-   - Real JWT tokens
-   - Actual Google authentication screens
-   - Perfect for end-to-end testing
-
-2. **Test Mode** (no setup required, not supported WIP)
-   - Manual test button for automation logic
-   - No Google configuration needed
-   - Perfect for button detection testing
-
-### Plain login form
-
-The login test pages are real, submitted username and password forms, for
-testing form filling, password managers and credential brokers without Google
-in the way. A `<form>` POST is answered by a **service worker running in the
-browser**, which decides the outcome and redirects. The request never reaches
-the network, so nothing typed leaves the browser, but it is a genuine submitted
-login, so the browser's password-save and form-history path is exercised. See
-[`login/about.html`](https://login.page.twkr.io/login/about.html) for how it
-works.
-
-Variants:
-- `/login.html`: strict. Only the public pair succeeds.
-- `/login/any.html`: accept-any. Any non-empty username and password succeed
-  (the page a canary test uses).
-- `/login/spa.html`: script login via `fetch()`, accept-any. The form is
-  removed and `history.pushState` is used, with no navigation.
-- `/login/spa-keep.html`: the same script login, but success takes nothing
-  away. The form stays in the DOM, still filled, and the URL does not change
-  (for testing what a filler does afterwards, such as clearing the fields).
-- `/login/welcome.html`: landing page after success (no credential fields).
-
-- Public test credentials: `testuser` / `correct-horse-battery-staple`.
-- Selectors: `#login-form`, `#username`, `#password`, `#submit`.
-  `#login-status[data-state]` is `idle`, `error` or `not_ready` on the login
-  pages, and `success` on the welcome page and on `spa-keep.html` after a
-  login.
-- `#fill-report` shows how many characters are in each field
-  (`data-username-length`, `data-password-length`) and never the values, so a
-  test can confirm that a fill landed without reading a secret back out.
-- `#submit-report` is the receipt of the last successful submit: the lengths
-  that were in the fields at that moment (same two attributes, plus
-  `data-recorded="true"`). It stays put after the form is gone, on the welcome
-  page and in both script pages, so a fill and submit that finish faster than
-  a test can poll are still observable.
-- Add `?expect=<sha256 hex of "username:password">` to a login page and the
-  receipt also carries `data-match="true|false"`, compared in the page. Use it
-  with a long random canary only, since the digest is in the URL.
-
-Perfect for:
-- Learning web automation
-- Testing button detection logic
-- Validating automation frameworks
-- CI/CD pipeline testing
-- Educational purposes
-- Real OAuth flow testing
-
-## 🚀 Quick Start
-
-### No Deploy Setup (5-minutes)
-
-1. **Get a Google OAuth Client ID**:
-   - See [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed step-by-step instructions
-   - Takes about 5 minutes
-   - Completely free
-
-2. **Configure the page**:
-   ```bash
-   # Copy the example config
-   cp config.example.js config.js
-
-   # Edit config.js and add your Client ID
-   nano config.js
-   ```
-
-3. **Serve and test**:
-   ```bash
-   python -m http.server 8000
-   ```
-
-Visit: `http://localhost:8000` - Now with real Google OAuth!
+# public_oauth_test
 
-### Deploy to Public Hosting
-
-This is a **single static HTML file** with no dependencies. Deploy anywhere:
+A public page with a real **Google Sign-In** button, as a target for testing
+browser automation that finds and drives "Sign in with Google" (for example
+`cycle-five/casino_automation`).
 
-#### GitHub Pages (Free)
-1. Create a new repository
-2. Upload `index.html`
-3. Enable GitHub Pages in Settings
-4. Access at: `https://yourusername.github.io/repo-name/`
+Live at <https://oauth.page.twkr.io/>.
 
-#### Netlify (Free)
-```bash
-# Install Netlify CLI
-npm install -g netlify-cli
+Looking for plain username and password forms (password managers, credential
+brokers)? Those pages moved to
+[CycleFive/login-fixtures](https://github.com/CycleFive/login-fixtures), live at
+<https://login.page.twkr.io/>.
 
-# Deploy
-cd public_oauth_test
-netlify deploy --prod
-```
+## What the page does
 
-Or drag and drop the folder at [netlify.com/drop](https://app.netlify.com/drop)
+- Renders Google's official Sign-In button (Google Identity Services, popup
+  mode) with the Client ID from `config.js`.
+- On a successful sign-in it decodes the returned ID token in the page, shows
+  the name and email, logs to the console and fires an `oauth-authenticated`
+  event on `window`.
+- Without a Client ID the button does not render and the console says so.
+  The old manual "test mode" button is commented out in `index.html` and is
+  not available.
 
-#### Vercel (Free)
-```bash
-# Install Vercel CLI
-npm install -g vercel
+## Selectors
 
-# Deploy
-cd public_oauth_test
-vercel --prod
-```
+The clickable button is inside Google's iframe, not in the page's own DOM.
 
-#### Cloudflare Pages (Free)
-1. Go to [pages.cloudflare.com](https://pages.cloudflare.com)
-2. Create new project
-3. Upload the folder
-4. Deploy
+- `#g_id_signin_container` / `.g_id_signin`: the container Google renders into
+- `#g_id_onload`: the GIS configuration element
+- `iframe[src*="accounts.google.com"]`: Google's button iframe
+- `button:has-text("Sign in with Google")` (or the button's text): inside that
+  iframe, so use a frame locator
 
-#### Any Static Host
-Works with: AWS S3, Google Cloud Storage, Azure Static Web Apps, Surge.sh, Render, etc.
+Google detects and may block automated sign-ins on its own pages. This page
+only gives you a real button and a real popup to reach.
 
-## 📋 Testing Examples
+## Configuration
 
-### Python + Playwright (Scrapling)
+The page needs an OAuth 2.0 Client ID (Web application) whose **Authorized
+JavaScript origins** include every origin you serve it from, for example
+`https://oauth.page.twkr.io` and `http://localhost:8000`.
+[SETUP_GUIDE.md](SETUP_GUIDE.md) walks through creating one.
 
-```python
-from scrapling.fetchers import StealthySession
+- **GitHub Pages (how the live site is deployed):** the workflow in
+  `.github/workflows/pages.yml` writes `config.js` from the `GOOGLE_CLIENT_ID`
+  (or `GOOGLE_APP_ID`) variable on the `github-pages` environment, using
+  `scripts/write-config.sh`. `config.js` is never committed.
+- **Locally:** `cp config.example.js config.js`, put your Client ID in it,
+  then `python3 -m http.server 8000` and open <http://localhost:8000>.
+- `netlify_build.sh` and `deploy.sh` are older deploy helpers for other hosts.
 
-def test_google_button():
-    def click_button(page):
-        page.click("button:has-text('Sign in with Google')")
-        page.wait_for_timeout(2000)
+Test: `bash tests/write-config.test.sh`.
 
-    with StealthySession(headless=False) as session:
-        session.fetch(
-            "https://your-domain.com",
-            page_action=click_button,
-            wait=3000
-        )
+## `test_google_oauth.py`
 
-test_google_button()
-```
+A Scrapling and Playwright script that finds the Google button (including
+inside iframes) and drives the sign-in. It imports `get_credentials` from a
+local `scrapling_pick` module that is not in this repository, so it does not
+run as is.
 
-### Python + Selenium
+## License
 
-```python
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-
-driver = webdriver.Chrome()
-driver.get("https://your-domain.com")
-
-button = driver.find_element(By.ID, "google-signin-btn")
-button.click()
-
-driver.quit()
-```
-
-### JavaScript + Playwright
-
-```javascript
-const { chromium } = require('playwright');
-
-(async () => {
-  const browser = await chromium.launch();
-  const page = await browser.newPage();
-
-  await page.goto('https://your-domain.com');
-  await page.click('button:has-text("Sign in with Google")');
-
-  await browser.close();
-})();
-```
-
-### JavaScript + Puppeteer
-
-```javascript
-const puppeteer = require('puppeteer');
-
-(async () => {
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-
-  await page.goto('https://your-domain.com');
-  await page.click('#google-signin-btn');
-
-  await browser.close();
-})();
-```
-
-### Cypress
-
-```javascript
-describe('OAuth Button Test', () => {
-  it('should click Google sign-in button', () => {
-    cy.visit('https://your-domain.com')
-    cy.get('#google-signin-btn').click()
-    cy.contains('Success').should('be.visible')
-  })
-})
-```
-
-## 🎨 Available Selectors
-
-The page is designed with multiple selector strategies (ymmv using this):
-
-- `button:has-text("Google")` - Text-based
-- `button:has-text("Sign in with Google")` - Full text
-- `#google-signin-btn` - ID selector
-- `.google-btn` - Class selector
-
-## 🔍 Features
-
-- ✅ **No authentication required** - Just a button that responds to clicks
-- ✅ **Visual feedback** - Shows success state when clicked
-- ✅ **Console logging** - Detailed logs for debugging
-- ✅ **Custom events** - Fires `oauth-test-clicked` event
-- ✅ **Click counter** - Tracks multiple clicks
-- ✅ **Responsive design** - Works on all screen sizes
-- ✅ **Zero dependencies** - Pure HTML/CSS/JS
-- ✅ **Fast loading** - Optimized for automation
-
-## 📊 What Gets Logged
-
-When the button is clicked:
-
-```javascript
-{
-  "message": "Google Sign-in button clicked!",
-  "clickCount": 1,
-  "timestamp": "2024-10-01T12:34:56.789Z",
-  "eventType": "Button click (automated or manual)"
-}
-```
-
-## 🤝 Contributing
-
-Want to improve this page? Ideas:
-- Add more OAuth provider buttons (GitHub, Facebook, etc.)
-- Add different button styles to test
-- Add more complex authentication flows
-- Add API endpoints for testing
-- Add CAPTCHA simulation
-
-## 📜 License
-
-(Correct, and interesting, does it always assume to put things in public domain?)
-This is public domain. Use it however you want:
-- Personal projects
-- Commercial projects
-- Educational purposes
-- Testing and automation
-- No attribution required (but appreciated!)
-
-## 🌟 Why This Exists
-
-Testing OAuth automation is tricky:
-1. Real OAuth providers block automation
-2. Setting up OAuth credentials is complex
-3. Rate limits make testing difficult
-4. Terms of Service often prohibit automation
-
-This page solves all those problems by providing a **simple, reliable, automation-friendly target** for testing.
-
-## 💡 Use Cases
-
-- **Learning**: Perfect for automation tutorials and courses
-- **CI/CD**: Use in continuous integration pipelines
-- **Development**: Test automation logic during development
-- **Debugging**: Isolate button detection issues
-- **Demos**: Show automation capabilities to clients
-
-## GITHUB
-
-[code here](https://github.com/cycle-five/public_oauth_test)
-
-## 🔗 Related Projects
-
-If you find this useful, check out:
-- [Scrapling](https://github.com/D4Vinci/Scrapling) - Undetectable web scraping library
-- [Playwright](https://playwright.dev/) - Modern automation framework
-- [Selenium](https://www.selenium.dev/) - Popular automation tool
-
----
-
-**Made for the testing community** 🧪
-
-If you deploy this publicly, consider sharing the URL with the community!
+Public domain. Use it however you want; attribution appreciated, not required.
